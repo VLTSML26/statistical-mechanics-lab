@@ -7,13 +7,13 @@ Francesc Font-Clos
 May 2018
 """
 import scipy
-
+import numpy as np # c'mon man: use it
 
 class IsingModel:
     """Ising model class."""
 
     def __init__(self, N=10, T=2. / scipy.log(1. + scipy.sqrt(2.)),
-                 H=0., seed=1):
+                 H=0., seed=1, N_eq=None, verbose=True):
         """
         Call scipy.random.seed with argument seed;
         Set self.N to be N
@@ -27,6 +27,13 @@ class IsingModel:
         self.lattice = scipy.random.random_integers(0, 1, (N, N))
         self.SetTemperatureField(T, H)
         self.N = N
+        if N_eq is None:
+            if verbose is True:
+                print('The model has not been thermalized yet.')
+        else:
+            self.Equilibrate(N_eq)
+            if verbose is True:
+                print('The model has been thermalized with ' + str(N_eq) + ' Wolff sweeps.')
 
     def SetTemperatureField(self, T, H):
         """
@@ -324,17 +331,43 @@ class IsingModel:
         
         return E
     
-    def EquilibrateWolff(self, N_eq=10):
+    def Equilibrate(self, N_eq=10):
         self.SweepWolff(nTimes=N_eq)
         return
-    
-    def GetMagnetization(self):
-        """
-        MAGNETIZATION OF THE ACTUAL SPIN CONFIGURATION:
-        return sum over all the spins in the lattice
-        """
-        return scipy.sum(self.lattice)
 
+    def GetMagnetization(self):
+        return scipy.sum(self.GetLattice())
+    
+    def GetSpecificHeat(self, n_samples):
+        """
+        SPECIFIC HEAT OF THE SYSTEM:
+        in order to calculate it, we must perform a certain numer of sweeps
+        #
+        define beta
+        define empty lists for E and E^2
+        #
+        for a given number of sweeps:
+            calculate energy
+            add E and E^2 to lists
+            update system
+        #
+        calculate and return specific heat with formula in notebook
+        """
+        beta = 1 / self.GetTemperature()
+        es = []
+        e2s = []
+        #
+        for _ in range(n_samples):
+            e = self.GetEnergy()
+            es += [e]
+            e2s += [e**2]
+            self.SweepWolff()
+        #
+        mean_e = np.mean(es)
+        es_shifted = np.asarray(es) - mean_e
+        mean_of_square = np.mean(es_shifted**2)
+        return mean_of_square * beta * beta
+    
 ######################################################################################################
 # END OF MY METHODS
 ######################################################################################################
