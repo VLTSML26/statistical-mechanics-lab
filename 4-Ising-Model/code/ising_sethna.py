@@ -368,6 +368,72 @@ class IsingModel:
         mean_of_square = np.mean(es_shifted**2)
         return mean_of_square * beta * beta
     
+    def GetSusceptibility(self, n_samples):
+        """
+        SUSCEPTIBILITY OF THE SYSTEM:
+        in order to calculate it, we must perform a certain numer of sweeps
+        #
+        define beta
+        define empty lists for M and M^2
+        #
+        for a given number of sweeps:
+            calculate magnetization
+            add M and M^2 to lists
+            update system
+        #
+        calculate and return susceptibility with formula in notebook
+        """
+        beta = 1 / self.GetTemperature()
+        ms = []
+        m2s = []
+        #
+        for _ in range(n_samples):
+            m = self.GetMagnetization()
+            ms += [m]
+            m2s += [m**2]
+            self.SweepWolff()
+        #
+        mean_m = np.mean(ms)
+        ms_shifted = np.asarray(ms) - mean_m
+        mean_of_square = np.mean(ms_shifted**2)
+        return mean_of_square * beta
+"""    
+    def RecursiveClusterFilling(self, labels, newlabel, x, y):
+        if(labels[x][y] != 0):
+            return 0
+        S = self.GetLattice()[x][y]
+        labels[x][y] = newlabel
+        size = 1
+        if(x+1 == self.N):
+            if(self.GetLattice()[0][y] == S):
+                size += self.RecursiveClusterFilling(labels, newlabel, 0, y)
+        else:
+            if(self.GetLattice()[x+1][y] == S):
+                size += self.RecursiveClusterFilling(labels, newlabel, x+1, y)
+        if(self.GetLattice()[x-1][y] == S):
+            size += self.RecursiveClusterFilling(labels, newlabel, (x-1)%self.N, y)
+        #
+        if(y+1 == self.N):
+            if(self.GetLattice()[x][0] == S):
+                size += self.RecursiveClusterFilling(labels, newlabel, x, 0)
+        else:
+            if(self.GetLattice()[x][y+1] == S):
+                size += self.RecursiveClusterFilling(labels, newlabel, x, y+1)
+        if(self.GetLattice()[x][y-1] == S):
+            size += self.RecursiveClusterFilling(labels, newlabel, x, (y-1)%self.N)
+        return size
+    
+    def GetClusters(self):
+        labels = np.zeros((self.N,self.N), int)
+        label = 1
+        for i in range(self.N):
+            for j in range(self.N):
+                size = self.RecursiveClusterFilling(labels, label, i, j)
+                if(size != 0):
+                    label += 1
+        return labels
+"""
+    
 ######################################################################################################
 # END OF MY METHODS
 ######################################################################################################
