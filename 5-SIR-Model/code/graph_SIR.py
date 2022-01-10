@@ -28,12 +28,14 @@ class GraphSIR :
 		for node in initial_infected :
 			network.nodes[node]['kind'] = 'I'
 		#
-		assert (0 < beta < 1)
-		assert (0 < gamma < 1)
+		assert 0 < beta < 1
+		assert 0 < gamma < 1
 		# 
 		self.network = network
 		self.beta = beta
 		self.gamma = gamma
+		###########self.T = 1 - gamma / ((1 - (1-beta)*(1-gamma)) * (1-gamma))
+		self.T = 1 - (gamma)/(1-gamma) * 1/(1-(1-gamma)*(1-beta))
 		self.history = []
 		#
 		self._log()
@@ -118,7 +120,7 @@ class GraphSIR :
 				if self.network.nodes[edge[i]]['kind'] == 'I' :
 					if self.network.nodes[edge[(i+1)%2]]['kind'] == 'S' :
 						x = np.random.uniform()
-						if (x<self.beta) :
+						if x < self.beta :
 							self.network.nodes[edge[(i+1)%2]]['kind'] = 'I'
 	
 	def _log(self) :
@@ -135,7 +137,7 @@ class GraphSIR :
 		add infos to the history log
 		"""
 		#
-		varS, varI, varR = 0,0,0
+		varS, varI, varR = 0, 0, 0
 		for node in self.network.nodes :
 			if self.network.nodes[node]['kind'] == 'S' :
 				varS += 1
@@ -148,3 +150,9 @@ class GraphSIR :
 		#
 		info = [varS, varI, varR] 
 		self.history.append(info)
+	
+	def _getSize(self) :
+		while self.history[-1][1] != 0 :
+			self.run(1)
+		assert self.history[-1][1] == 0
+		return self.history[-1][2]
