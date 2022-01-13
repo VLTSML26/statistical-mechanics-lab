@@ -34,8 +34,10 @@ class GraphSIR :
 		self.network = network
 		self.beta = beta
 		self.gamma = gamma
-		###########self.T = 1 - gamma / ((1 - (1-beta)*(1-gamma)) * (1-gamma))
-		self.T = 1 - (gamma)/(1-gamma) * 1/(1-(1-gamma)*(1-beta))
+		# proposta 1 
+		self.T = 1 - gamma / (1 - (1-beta)*(1-gamma))
+		# proposta 2
+		#self.T = 1 - (gamma)/(1-gamma) * 1/(1-(1-gamma)*(1-beta))
 		self.history = []
 		#
 		self._log()
